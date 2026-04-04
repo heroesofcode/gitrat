@@ -14,7 +14,11 @@ use crate::{
 pub fn render(f: &mut Frame, app: &mut App) {
 	let root = Layout::default()
 		.direction(Direction::Vertical)
-		.constraints([Constraint::Min(1), Constraint::Length(1)])
+		.constraints([
+			Constraint::Min(1),
+			Constraint::Length(3),
+			Constraint::Length(1),
+		])
 		.split(f.area());
 
 	let panes = Layout::default()
@@ -24,7 +28,8 @@ pub fn render(f: &mut Frame, app: &mut App) {
 
 	render_file_list(f, app, panes[0]);
 	render_diff(f, app, panes[1]);
-	render_status_bar(f, root[1]);
+	render_commit_input(f, app, root[1]);
+	render_status_bar(f, root[2]);
 }
 
 fn render_file_list(f: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
@@ -103,6 +108,38 @@ fn render_diff(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 	f.render_widget(diff, area);
 }
 
+fn render_commit_input(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+	let (title, border_style) = if app.input_mode {
+		(
+			" Commit message (Enter to commit, Esc to cancel) ",
+			Style::default().fg(Color::Yellow),
+		)
+	} else {
+		(
+			" Commit message (c to edit) ",
+			Style::default().fg(Color::DarkGray),
+		)
+	};
+
+	let input = Paragraph::new(app.commit_input.as_str())
+		.style(Style::default().fg(Color::White))
+		.block(
+			Block::default()
+				.borders(Borders::ALL)
+				.border_style(border_style)
+				.title(title)
+				.title_style(Style::default().add_modifier(Modifier::BOLD)),
+		);
+
+	f.render_widget(input, area);
+
+	if app.input_mode {
+		let x = area.x + 1 + app.commit_input.len() as u16;
+		let y = area.y + 1;
+		f.set_cursor_position((x, y));
+	}
+}
+
 fn render_status_bar(f: &mut Frame, area: ratatui::layout::Rect) {
 	let help = Line::from(vec![
 		Span::styled(" ↑/k ", Style::default().fg(Color::Yellow)),
@@ -117,6 +154,8 @@ fn render_status_bar(f: &mut Frame, area: ratatui::layout::Rect) {
 		Span::raw("remove  "),
 		Span::styled("^d/^u ", Style::default().fg(Color::Yellow)),
 		Span::raw("scroll diff  "),
+		Span::styled("c ", Style::default().fg(Color::Yellow)),
+		Span::raw("commit  "),
 		Span::styled("q ", Style::default().fg(Color::Yellow)),
 		Span::raw("quit"),
 	]);

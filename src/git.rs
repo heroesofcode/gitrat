@@ -111,6 +111,13 @@ pub fn remove_file(file: &FileEntry) {
 	}
 }
 
+pub fn commit(message: &str) {
+	Command::new("git")
+		.args(["commit", "-m", message])
+		.output()
+		.ok();
+}
+
 fn parse_diff(text: &str) -> Vec<DiffLine> {
 	text
 		.lines()

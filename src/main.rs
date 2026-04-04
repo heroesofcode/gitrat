@@ -29,19 +29,34 @@ fn main() -> io::Result<()> {
 		terminal.draw(|f| ui::render(f, &mut app))?;
 
 		match event::read()? {
-			Event::Key(key) => match key.code {
-				KeyCode::Char('q') => break,
-				KeyCode::Down | KeyCode::Char('j') => app.next(),
-				KeyCode::Up | KeyCode::Char('k') => app.prev(),
-				KeyCode::Char(' ') => app.toggle_stage(),
-				KeyCode::Char('r') => app.revert(),
-				KeyCode::Char('x') => app.remove(),
-				KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_down(),
-				KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_up(),
-				KeyCode::PageDown => app.scroll_down(),
-				KeyCode::PageUp => app.scroll_up(),
-				_ => {}
-			},
+			Event::Key(key) => {
+				if app.input_mode {
+					match key.code {
+						KeyCode::Esc => app.exit_input_mode(),
+						KeyCode::Enter => app.commit(),
+						KeyCode::Backspace => {
+							app.commit_input.pop();
+						}
+						KeyCode::Char(c) => app.commit_input.push(c),
+						_ => {}
+					}
+				} else {
+					match key.code {
+						KeyCode::Char('q') => break,
+						KeyCode::Down | KeyCode::Char('j') => app.next(),
+						KeyCode::Up | KeyCode::Char('k') => app.prev(),
+						KeyCode::Char(' ') => app.toggle_stage(),
+						KeyCode::Char('r') => app.revert(),
+						KeyCode::Char('x') => app.remove(),
+						KeyCode::Char('c') => app.enter_input_mode(),
+						KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_down(),
+						KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_up(),
+						KeyCode::PageDown => app.scroll_down(),
+						KeyCode::PageUp => app.scroll_up(),
+						_ => {}
+					}
+				}
+			}
 			Event::Mouse(mouse) => match mouse.kind {
 				MouseEventKind::ScrollDown => app.scroll_down(),
 				MouseEventKind::ScrollUp => app.scroll_up(),

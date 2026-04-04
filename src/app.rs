@@ -11,6 +11,8 @@ pub struct App {
 	pub list_state: ListState,
 	pub diff_lines: Vec<DiffLine>,
 	pub diff_scroll: u16,
+	pub input_mode: bool,
+	pub commit_input: String,
 }
 
 impl App {
@@ -21,6 +23,8 @@ impl App {
 			list_state: ListState::default(),
 			diff_lines: vec![],
 			diff_scroll: 0,
+			input_mode: false,
+			commit_input: String::new(),
 		};
 
 		app.refresh();
@@ -104,5 +108,24 @@ impl App {
 
 	pub fn scroll_up(&mut self) {
 		self.diff_scroll = self.diff_scroll.saturating_sub(5);
+	}
+
+	pub fn enter_input_mode(&mut self) {
+		self.input_mode = true;
+	}
+
+	pub fn exit_input_mode(&mut self) {
+		self.input_mode = false;
+	}
+
+	pub fn commit(&mut self) {
+		if self.commit_input.is_empty() {
+			return;
+		}
+
+		git::commit(&self.commit_input);
+		self.commit_input.clear();
+		self.input_mode = false;
+		self.refresh();
 	}
 }
