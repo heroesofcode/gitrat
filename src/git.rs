@@ -11,10 +11,10 @@ pub fn load_files() -> Vec<FileEntry> {
 	let stdout = String::from_utf8_lossy(&out.stdout);
 	stdout
 		.lines()
-		.filter(|l| l.len() >= 3)
+		.filter(|line| line.len() >= 3)
 		.map(|line| {
-			let x = line.chars().nth(0).unwrap_or(' ');
-			let y = line.chars().nth(1).unwrap_or(' ');
+			let index_status = line.chars().nth(0).unwrap_or(' ');
+			let worktree_status = line.chars().nth(1).unwrap_or(' ');
 			let raw_path = &line[3..];
 
 			let path = if let Some(pos) = raw_path.find(" -> ") {
@@ -23,7 +23,7 @@ pub fn load_files() -> Vec<FileEntry> {
 				raw_path.trim_matches('"').to_string()
 			};
 
-			let status = match (x, y) {
+			let status = match (index_status, worktree_status) {
 				('?', '?') => FileStatus::Untracked,
 				(' ', 'D') => FileStatus::Deleted,
 				(' ', _) => FileStatus::Modified,

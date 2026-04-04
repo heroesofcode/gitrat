@@ -26,7 +26,7 @@ fn main() -> io::Result<()> {
 	let mut app = App::new();
 
 	loop {
-		terminal.draw(|f| ui::render(f, &mut app))?;
+		terminal.draw(|frame| ui::render(frame, &mut app))?;
 
 		match event::read()? {
 			Event::Key(key) => {
@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
 						KeyCode::Backspace => {
 							app.commit_input.pop();
 						}
-						KeyCode::Char(c) => app.commit_input.push(c),
+						KeyCode::Char(ch) => app.commit_input.push(ch),
 						_ => {}
 					}
 				} else {

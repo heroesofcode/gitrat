@@ -11,7 +11,7 @@ use crate::{
 	types::{DiffKind, FileStatus},
 };
 
-pub fn render(f: &mut Frame, app: &mut App) {
+pub fn render(frame: &mut Frame, app: &mut App) {
 	let root = Layout::default()
 		.direction(Direction::Vertical)
 		.constraints([
@@ -19,20 +19,20 @@ pub fn render(f: &mut Frame, app: &mut App) {
 			Constraint::Length(3),
 			Constraint::Length(1),
 		])
-		.split(f.area());
+		.split(frame.area());
 
 	let panes = Layout::default()
 		.direction(Direction::Horizontal)
 		.constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
 		.split(root[0]);
 
-	render_file_list(f, app, panes[0]);
-	render_diff(f, app, panes[1]);
-	render_commit_input(f, app, root[1]);
-	render_status_bar(f, root[2]);
+	render_file_list(frame, app, panes[0]);
+	render_diff(frame, app, panes[1]);
+	render_commit_input(frame, app, root[1]);
+	render_status_bar(frame, root[2]);
 }
 
-fn render_file_list(f: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
+fn render_file_list(frame: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
 	let items: Vec<ListItem> = app
 		.files
 		.iter()
@@ -68,10 +68,10 @@ fn render_file_list(f: &mut Frame, app: &mut App, area: ratatui::layout::Rect) {
 		)
 		.highlight_symbol("▶ ");
 
-	f.render_stateful_widget(file_list, area, &mut app.list_state);
+	frame.render_stateful_widget(file_list, area, &mut app.list_state);
 }
 
-fn render_diff(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+fn render_diff(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 	let diff_lines: Vec<Line> = app
 		.diff_lines
 		.iter()
@@ -105,10 +105,10 @@ fn render_diff(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 		)
 		.scroll((app.diff_scroll, 0));
 
-	f.render_widget(diff, area);
+	frame.render_widget(diff, area);
 }
 
-fn render_commit_input(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+fn render_commit_input(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 	let (title, border_style) = if app.input_mode {
 		(
 			" Commit message (Enter to commit, Esc to cancel) ",
@@ -131,16 +131,16 @@ fn render_commit_input(f: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 				.title_style(Style::default().add_modifier(Modifier::BOLD)),
 		);
 
-	f.render_widget(input, area);
+	frame.render_widget(input, area);
 
 	if app.input_mode {
-		let x = area.x + 1 + app.commit_input.len() as u16;
-		let y = area.y + 1;
-		f.set_cursor_position((x, y));
+		let cursor_x = area.x + 1 + app.commit_input.len() as u16;
+		let cursor_y = area.y + 1;
+		frame.set_cursor_position((cursor_x, cursor_y));
 	}
 }
 
-fn render_status_bar(f: &mut Frame, area: ratatui::layout::Rect) {
+fn render_status_bar(frame: &mut Frame, area: ratatui::layout::Rect) {
 	let help = Line::from(vec![
 		Span::styled(" ↑/k ", Style::default().fg(Color::Yellow)),
 		Span::raw("up  "),
@@ -160,5 +160,5 @@ fn render_status_bar(f: &mut Frame, area: ratatui::layout::Rect) {
 		Span::raw("quit"),
 	]);
 
-	f.render_widget(Paragraph::new(help), area);
+	frame.render_widget(Paragraph::new(help), area);
 }
