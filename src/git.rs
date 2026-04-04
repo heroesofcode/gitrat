@@ -69,6 +69,48 @@ pub fn toggle_stage(file: &FileEntry) {
 	}
 }
 
+pub fn revert_file(file: &FileEntry) {
+	match file.status {
+		FileStatus::Untracked => {}
+		FileStatus::Staged => {
+			Command::new("git")
+				.args(["restore", "--staged", &file.path])
+				.output()
+				.ok();
+		}
+		FileStatus::StagedModified => {
+			Command::new("git")
+				.args(["restore", "--staged", &file.path])
+				.output()
+				.ok();
+			Command::new("git")
+				.args(["restore", &file.path])
+				.output()
+				.ok();
+		}
+		_ => {
+			Command::new("git")
+				.args(["restore", &file.path])
+				.output()
+				.ok();
+		}
+	}
+}
+
+pub fn remove_file(file: &FileEntry) {
+	match file.status {
+		FileStatus::Untracked => {
+			std::fs::remove_file(&file.path).ok();
+		}
+		_ => {
+			Command::new("git")
+				.args(["rm", "-f", &file.path])
+				.output()
+				.ok();
+		}
+	}
+}
+
 fn parse_diff(text: &str) -> Vec<DiffLine> {
 	text
 		.lines()

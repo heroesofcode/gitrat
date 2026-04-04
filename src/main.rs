@@ -34,6 +34,8 @@ fn main() -> io::Result<()> {
 				KeyCode::Down | KeyCode::Char('j') => app.next(),
 				KeyCode::Up | KeyCode::Char('k') => app.prev(),
 				KeyCode::Char(' ') => app.toggle_stage(),
+				KeyCode::Char('r') => app.revert(),
+				KeyCode::Char('x') => app.remove(),
 				KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_down(),
 				KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_up(),
 				KeyCode::PageDown => app.scroll_down(),

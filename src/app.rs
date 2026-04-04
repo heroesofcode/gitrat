@@ -80,6 +80,24 @@ impl App {
 		self.refresh();
 	}
 
+	pub fn revert(&mut self) {
+		if self.files.is_empty() {
+			return;
+		}
+
+		git::revert_file(&self.files[self.selected]);
+		self.refresh();
+	}
+
+	pub fn remove(&mut self) {
+		if self.files.is_empty() {
+			return;
+		}
+
+		git::remove_file(&self.files[self.selected]);
+		self.refresh();
+	}
+
 	pub fn scroll_down(&mut self) {
 		self.diff_scroll = self.diff_scroll.saturating_add(5);
 	}
