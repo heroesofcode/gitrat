@@ -1,8 +1,12 @@
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind};
+use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseEvent, MouseEventKind};
 
 use crate::app::App;
 
 pub fn handle_key(app: &mut App, key: KeyEvent) -> bool {
+	if key.kind != KeyEventKind::Press {
+		return false;
+	}
+
 	if app.input_mode {
 		handle_input_mode(app, key);
 		false
@@ -26,7 +30,7 @@ fn handle_input_mode(app: &mut App, key: KeyEvent) {
 		KeyCode::Backspace => {
 			app.commit_input.pop();
 		}
-		KeyCode::Char(character) => app.commit_input.push(character),
+		KeyCode::Char(character) if key.modifiers.is_empty() || key.modifiers == KeyModifiers::SHIFT => app.commit_input.push(character),
 		_ => {}
 	}
 }

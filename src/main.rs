@@ -15,19 +15,23 @@ fn main() -> io::Result<()> {
 	let mut terminal = terminal::setup()?;
 	let mut app = App::new();
 
-	loop {
-		terminal.draw(|frame| ui::render(frame, &mut app))?;
+	let res = (|| -> io::Result<()> {
+		loop {
+			terminal.draw(|frame| ui::render(frame, &mut app))?;
 
-		match event::read()? {
-			Event::Key(key) => {
-				if event_handler::handle_key(&mut app, key) {
-					break;
+			match event::read()? {
+				Event::Key(key) => {
+					if event_handler::handle_key(&mut app, key) {
+						break;
+					}
 				}
+				Event::Mouse(mouse) => event_handler::handle_mouse(&mut app, mouse),
+				_ => {}
 			}
-			Event::Mouse(mouse) => event_handler::handle_mouse(&mut app, mouse),
-			_ => {}
 		}
-	}
+		Ok(())
+	})();
 
-	terminal::teardown(&mut terminal)
+	let cleanup_res = terminal::teardown(&mut terminal);
+	res.and(cleanup_res)
 }
