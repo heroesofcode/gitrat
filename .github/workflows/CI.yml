@@ -14,7 +14,7 @@ jobs:
           cache: true
           experimental: true
 
-      - uses: Swatinem/rust-cache@11da8522bc3856a8fbc565f1d1530989c793d67d
+      - uses: Swatinem/rust-cache@f51f967e158417aafa338a1e46ab22095f07aa01
 
       - name: Run build
         run: mise build
