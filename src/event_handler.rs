@@ -30,7 +30,11 @@ fn handle_input_mode(app: &mut App, key: KeyEvent) {
 		KeyCode::Backspace => {
 			app.commit_input.pop();
 		}
-		KeyCode::Char(character) if key.modifiers.is_empty() || key.modifiers == KeyModifiers::SHIFT => app.commit_input.push(character),
+		KeyCode::Char(character)
+			if key.modifiers.is_empty() || key.modifiers == KeyModifiers::SHIFT =>
+		{
+			app.commit_input.push(character)
+		}
 		_ => {}
 	}
 }
