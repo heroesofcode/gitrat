@@ -2,6 +2,9 @@ use crossterm::event::{KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseEvent
 
 use crate::app::App;
 
+/// Handles a keyboard event, dispatching to normal or input mode as appropriate.
+///
+/// Returns `true` when the application should quit.
 pub fn handle_key(app: &mut App, key: KeyEvent) -> bool {
 	if key.kind != KeyEventKind::Press {
 		return false;
@@ -15,6 +18,7 @@ pub fn handle_key(app: &mut App, key: KeyEvent) -> bool {
 	}
 }
 
+/// Handles a mouse event, currently forwarding scroll wheel movements to the diff panel.
 pub fn handle_mouse(app: &mut App, mouse: MouseEvent) {
 	match mouse.kind {
 		MouseEventKind::ScrollDown => app.scroll_down(),

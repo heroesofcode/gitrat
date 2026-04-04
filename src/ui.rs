@@ -11,6 +11,10 @@ use crate::{
 	types::{DiffKind, FileStatus},
 };
 
+/// Renders the full TUI for one frame.
+///
+/// Layout: a 30 % file-list panel on the left, a 70 % diff panel on the right,
+/// a commit-message input bar below them, and a key-binding status bar at the bottom.
 pub fn render(frame: &mut Frame, app: &mut App) {
 	let root = Layout::default()
 		.direction(Direction::Vertical)
@@ -44,6 +48,7 @@ fn render_file_list(frame: &mut Frame, app: &mut App, area: ratatui::layout::Rec
 				FileStatus::Deleted => ("D ", Color::Red),
 				FileStatus::StagedModified => ("± ", Color::Yellow),
 			};
+
 			ListItem::new(Line::from(vec![
 				Span::styled(
 					icon,

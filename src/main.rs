@@ -6,9 +6,7 @@ mod types;
 mod ui;
 
 use std::io;
-
 use crossterm::event::{self, Event};
-
 use app::App;
 
 fn main() -> io::Result<()> {
@@ -29,6 +27,7 @@ fn main() -> io::Result<()> {
 				_ => {}
 			}
 		}
+
 		Ok(())
 	})();
 
