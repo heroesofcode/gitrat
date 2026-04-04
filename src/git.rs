@@ -2,6 +2,8 @@ use std::process::Command;
 
 use crate::types::{DiffKind, DiffLine, FileEntry, FileStatus};
 
+/// Returns all changed, staged, or untracked files in the repository by parsing
+/// `git status --porcelain`.
 pub fn load_files() -> Vec<FileEntry> {
 	let out = Command::new("git")
 		.args(["status", "--porcelain", "-u"])
@@ -36,6 +38,8 @@ pub fn load_files() -> Vec<FileEntry> {
 		.collect()
 }
 
+/// Returns the unified diff for `file`, selecting the appropriate `git diff` variant
+/// based on the file's status (untracked, staged, or working-tree).
 pub fn load_diff(file: &FileEntry) -> Vec<DiffLine> {
 	let raw = match file.status {
 		FileStatus::Untracked => Command::new("git")
@@ -55,6 +59,7 @@ pub fn load_diff(file: &FileEntry) -> Vec<DiffLine> {
 	}
 }
 
+/// Stages the file if it is not staged, or unstages it if it is already staged.
 pub fn toggle_stage(file: &FileEntry) {
 	match file.status {
 		FileStatus::Staged => {
@@ -69,6 +74,10 @@ pub fn toggle_stage(file: &FileEntry) {
 	}
 }
 
+/// Discards changes to `file`, restoring it to the last committed state.
+///
+/// For `StagedModified` files both the staged and working-tree changes are discarded.
+/// Untracked files are left untouched.
 pub fn revert_file(file: &FileEntry) {
 	match file.status {
 		FileStatus::Untracked => {}
@@ -97,6 +106,10 @@ pub fn revert_file(file: &FileEntry) {
 	}
 }
 
+/// Removes `file` from the repository.
+///
+/// Untracked files are deleted from disk with `fs::remove_file`. Tracked files are
+/// removed with `git rm -f`.
 pub fn remove_file(file: &FileEntry) {
 	match file.status {
 		FileStatus::Untracked => {
@@ -111,6 +124,7 @@ pub fn remove_file(file: &FileEntry) {
 	}
 }
 
+/// Creates a commit with the given `message` using `git commit -m`.
 pub fn commit(message: &str) {
 	Command::new("git")
 		.args(["commit", "-m", message])
