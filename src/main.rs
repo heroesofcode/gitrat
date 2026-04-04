@@ -49,7 +49,9 @@ fn main() -> io::Result<()> {
 						KeyCode::Char('r') => app.revert(),
 						KeyCode::Char('x') => app.remove(),
 						KeyCode::Char('c') => app.enter_input_mode(),
-						KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_down(),
+						KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+							app.scroll_down()
+						}
 						KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_up(),
 						KeyCode::PageDown => app.scroll_down(),
 						KeyCode::PageUp => app.scroll_up(),
