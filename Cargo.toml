@@ -2,6 +2,11 @@
 name = "gitrat"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+authors = ["João Lucas <joaolucasfp2001@gmail.com>"]
+description = "A Ratatui-powered CLI for interactively staging, diffing, and committing git changes"
+readme = "README.md"
+repository = "https://github.com/heroesofcode/gitrat"
 
 [dependencies]
 ratatui = "0.30"
