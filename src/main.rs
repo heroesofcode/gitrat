@@ -6,10 +6,17 @@ mod types;
 mod ui;
 
 use std::io;
+use clap::Parser;
 use crossterm::event::{self, Event};
 use app::App;
 
+#[derive(Parser)]
+#[command(version, about)]
+struct Cli {}
+
 fn main() -> io::Result<()> {
+	Cli::parse();
+
 	let mut terminal = terminal::setup()?;
 	let mut app = App::new();
 
