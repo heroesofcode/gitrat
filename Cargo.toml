@@ -11,3 +11,4 @@ repository = "https://github.com/heroesofcode/gitrat"
 [dependencies]
 ratatui = "0.30"
 crossterm = "0.29"
+clap = { version = "4.5.53", features = ["derive"] }
