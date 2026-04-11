@@ -116,12 +116,15 @@ fn render_diff(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 fn render_commit_input(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 	let (title, border_style) = if app.input_mode {
 		(
-			" Commit message (Enter to commit, Esc to cancel) ",
+			" Commit message (Enter to commit, Esc to cancel) ".to_string(),
 			Style::default().fg(Color::Yellow),
 		)
+	} else if let Some((ok, ref msg)) = app.push_message {
+		let color = if ok { Color::Green } else { Color::Red };
+		(format!(" {} ", msg), Style::default().fg(color))
 	} else {
 		(
-			" Commit message (c to edit) ",
+			" Commit message (c to edit) ".to_string(),
 			Style::default().fg(Color::DarkGray),
 		)
 	};
@@ -132,7 +135,7 @@ fn render_commit_input(frame: &mut Frame, app: &App, area: ratatui::layout::Rect
 			Block::default()
 				.borders(Borders::ALL)
 				.border_style(border_style)
-				.title(title)
+				.title(title.as_str())
 				.title_style(Style::default().add_modifier(Modifier::BOLD)),
 		);
 
@@ -161,6 +164,8 @@ fn render_status_bar(frame: &mut Frame, area: ratatui::layout::Rect) {
 		Span::raw("scroll diff  "),
 		Span::styled("c ", Style::default().fg(Color::Yellow)),
 		Span::raw("commit  "),
+		Span::styled("p ", Style::default().fg(Color::Yellow)),
+		Span::raw("push  "),
 		Span::styled("q ", Style::default().fg(Color::Yellow)),
 		Span::raw("quit"),
 	]);
