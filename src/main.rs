@@ -5,10 +5,10 @@ mod terminal;
 mod types;
 mod ui;
 
-use std::io;
+use app::App;
 use clap::Parser;
 use crossterm::event::{self, Event};
-use app::App;
+use std::io;
 
 #[derive(Parser)]
 #[command(version, about)]

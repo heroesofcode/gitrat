@@ -15,7 +15,7 @@ pub fn load_files() -> Vec<FileEntry> {
 		.lines()
 		.filter(|line| line.len() >= 3)
 		.map(|line| {
-			let index_status = line.chars().nth(0).unwrap_or(' ');
+			let index_status = line.chars().next().unwrap_or(' ');
 			let worktree_status = line.chars().nth(1).unwrap_or(' ');
 			let raw_path = &line[3..];
 
@@ -136,9 +136,11 @@ fn parse_diff(text: &str) -> Vec<DiffLine> {
 	text
 		.lines()
 		.map(|line| {
-			let kind = if line.starts_with("+++") || line.starts_with("---") {
-				DiffKind::Meta
-			} else if line.starts_with("diff ") || line.starts_with("index ") {
+			let kind = if line.starts_with("+++")
+				|| line.starts_with("---")
+				|| line.starts_with("diff ")
+				|| line.starts_with("index ")
+			{
 				DiffKind::Meta
 			} else if line.starts_with("@@") {
 				DiffKind::Hunk
