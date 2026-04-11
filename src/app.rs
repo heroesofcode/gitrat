@@ -25,6 +25,8 @@ pub struct App {
 	pub input_mode: bool,
 	/// The commit message being typed by the user.
 	pub commit_input: String,
+	/// Feedback from the last `git push` (None = no message, Some((true, _)) = success).
+	pub push_message: Option<(bool, String)>,
 }
 
 impl App {
@@ -38,6 +40,7 @@ impl App {
 			diff_scroll: 0,
 			input_mode: false,
 			commit_input: String::new(),
+			push_message: None,
 		};
 
 		app.refresh();
@@ -139,6 +142,21 @@ impl App {
 	/// Deactivates the commit-message input bar without committing.
 	pub fn exit_input_mode(&mut self) {
 		self.input_mode = false;
+	}
+
+	/// Pushes the current branch to its upstream remote.
+	///
+	/// Stores a success or error message in `push_message` for display in the UI.
+	pub fn push(&mut self) {
+		self.push_message = match git::push() {
+			Ok(()) => Some((true, "Push successful".to_string())),
+			Err(msg) => Some((false, msg)),
+		};
+	}
+
+	/// Clears any pending push status message.
+	pub fn clear_message(&mut self) {
+		self.push_message = None;
 	}
 
 	/// Commits staged changes using the current `commit_input` message.

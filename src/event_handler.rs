@@ -44,6 +44,8 @@ fn handle_input_mode(app: &mut App, key: KeyEvent) {
 }
 
 fn handle_normal_mode(app: &mut App, key: KeyEvent) -> bool {
+	app.clear_message();
+
 	match key.code {
 		KeyCode::Char('q') => return true,
 		KeyCode::Down | KeyCode::Char('j') => app.next(),
@@ -52,6 +54,7 @@ fn handle_normal_mode(app: &mut App, key: KeyEvent) -> bool {
 		KeyCode::Char('r') => app.revert(),
 		KeyCode::Char('x') => app.remove(),
 		KeyCode::Char('c') => app.enter_input_mode(),
+		KeyCode::Char('p') => app.push(),
 		KeyCode::Char('d') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_down(),
 		KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => app.scroll_up(),
 		KeyCode::PageDown => app.scroll_down(),

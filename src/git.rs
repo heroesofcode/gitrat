@@ -132,6 +132,68 @@ pub fn commit(message: &str) {
 		.ok();
 }
 
+/// Pushes the current branch to its upstream remote using `git push`.
+///
+/// If the branch has no upstream yet, automatically sets it with
+/// `git push --set-upstream origin <branch>`.
+///
+/// Returns `Ok(())` on success or an error message string on failure.
+pub fn push() -> Result<(), String> {
+	let out = Command::new("git")
+		.args(["push"])
+		.output()
+		.map_err(|e| e.to_string())?;
+
+	if out.status.success() {
+		return Ok(());
+	}
+
+	let stderr = String::from_utf8_lossy(&out.stderr);
+	if stderr.contains("no upstream branch") || stderr.contains("has no upstream") {
+		let branch = current_branch()?;
+		let retry = Command::new("git")
+			.args(["push", "--set-upstream", "origin", &branch])
+			.output()
+			.map_err(|e| e.to_string())?;
+
+		if retry.status.success() {
+			return Ok(());
+		}
+
+		let retry_err = String::from_utf8_lossy(&retry.stderr);
+		return Err(
+			retry_err
+				.lines()
+				.last()
+				.unwrap_or("push failed")
+				.trim()
+				.to_string(),
+		);
+	}
+
+	Err(
+		stderr
+			.lines()
+			.last()
+			.unwrap_or("push failed")
+			.trim()
+			.to_string(),
+	)
+}
+
+fn current_branch() -> Result<String, String> {
+	let out = Command::new("git")
+		.args(["rev-parse", "--abbrev-ref", "HEAD"])
+		.output()
+		.map_err(|e| e.to_string())?;
+
+	if out.status.success() {
+		Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+	} else {
+		Err("could not determine current branch".to_string())
+	}
+}
+
 fn parse_diff(text: &str) -> Vec<DiffLine> {
 	text
 		.lines()
