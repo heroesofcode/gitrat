@@ -2,6 +2,7 @@
 name = "gitrat"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.100"
 license = "MIT"
 authors = ["João Lucas <joaolucasfp2001@gmail.com>"]
 description = "A Ratatui-powered CLI for interactively staging, diffing, and committing git changes"
@@ -9,6 +10,14 @@ readme = "README.md"
 repository = "https://github.com/heroesofcode/gitrat"
 
 [dependencies]
-ratatui = "0.30"
-crossterm = "0.29"
-clap = { version = "4.5.53", features = ["derive"] }
+ratatui = "0.30.2"
+crossterm = "0.29.0"
+clap = { version = "4.6.7", features = ["derive"] }
+unicode-width = "0.2.3"
+syntect = { version = "5.3.0", default-features = false, features = ["parsing", "regex-onig"] }
+two-face = "0.5.2"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

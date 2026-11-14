@@ -1,5 +1,5 @@
 /// Represents the staging/working-tree status of a file as reported by `git status`.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FileStatus {
 	/// File is fully staged (index only, no working-tree changes).
 	Staged,
@@ -7,41 +7,37 @@ pub enum FileStatus {
 	Modified,
 	/// File is not tracked by git.
 	Untracked,
-	/// File has been deleted from the working tree.
+	/// File has been deleted from the working tree (not staged).
 	Deleted,
 	/// File has staged changes and additional unstaged working-tree changes.
 	StagedModified,
+	/// File has an unresolved merge conflict.
+	Conflicted,
 }
 
 /// A single file entry returned by `git status`, combining the path and its status.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileEntry {
-	/// Relative path to the file from the repository root.
+	/// Path to the file, relative to the repository root.
 	pub path: String,
+	/// Original path for renamed/copied entries (`R`/`C` index status).
+	pub orig_path: Option<String>,
+	/// Raw index status character (`X` in `git status --porcelain`).
+	pub index: char,
+	/// Raw working-tree status character (`Y` in `git status --porcelain`).
+	pub worktree: char,
 	/// Current staging/working-tree status of the file.
 	pub status: FileStatus,
 }
 
-/// Classifies a single line of a unified diff.
-#[derive(Debug)]
-pub enum DiffKind {
-	/// Line was added (`+` prefix).
-	Added,
-	/// Line was removed (`-` prefix).
-	Removed,
-	/// Unchanged context line.
-	Context,
-	/// Hunk header (`@@` line).
-	Hunk,
-	/// Diff metadata (e.g. `diff --git`, `index`, `---`, `+++` lines).
-	Meta,
-}
+impl FileEntry {
+	/// Returns `true` if the file has changes recorded in the index.
+	pub fn has_staged(&self) -> bool {
+		!matches!(self.index, ' ' | '?' | '!')
+	}
 
-/// A single parsed line from a unified diff, with its content and classification.
-#[derive(Debug)]
-pub struct DiffLine {
-	/// Text content of the line (tabs expanded, carriage returns stripped).
-	pub content: String,
-	/// Classification of this diff line.
-	pub kind: DiffKind,
+	/// Returns `true` if the file is newly added to the index (not in `HEAD`).
+	pub fn is_new_in_index(&self) -> bool {
+		self.index == 'A'
+	}
 }

@@ -19,6 +19,9 @@ jobs:
       - name: Run build
         run: mise build
 
+      - name: Run lint
+        run: mise lint
+
       - name: Run tests
         run: mise test
 
