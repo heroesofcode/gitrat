@@ -2,6 +2,8 @@
 
 CLI project to see git changes and commit. I created this project to personal use, feel free to contribute.
 
+![gitrat running in the terminal](assets/screenshot.png)
+
 ## Installing
 
 #### Cargo 🦀
@@ -68,13 +70,3 @@ appearance (which Terminal.app's default profile follows); override with
 letter binding. To select text with the mouse while gitrat is running, hold `Fn`
 (or start with `--no-mouse`). `git push` never prompts inside the TUI: use the
 macOS keychain credential helper or an SSH agent.
-
-## Development
-
-Requires Rust 1.100 (pinned in `mise.toml`):
-
-```shell
-mise install
-mise test
-mise lint
-```
