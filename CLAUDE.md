@@ -12,6 +12,9 @@ cargo clippy --all-targets --all-features  # or: mise lint
 cargo fmt --all -- --check                 # or: mise fmt
 cargo fmt --all                            # apply formatting
 cargo build --release  # or: mise release
+mise run zizmor        # audit .github/workflows (must report no findings)
+mise run package       # releasor -f gitrat → gitrat.tar.gz (macOS)
+mise lock --platform linux-x64,linux-arm64,macos-x64,macos-arm64,windows-x64  # after changing [tools]
 ```
 
 ## Code Style
@@ -24,7 +27,13 @@ Formatting is enforced via `.rustfmt.toml`:
 
 ## Toolchain
 
-Rust 1.100 (edition 2024), pinned in `mise.toml` and `rust-version` in `Cargo.toml`. CI installs it via `mise`.
+Rust 1.100 (edition 2024), pinned in `mise.toml` and `rust-version` in `Cargo.toml`. CI installs it via `mise`; tool versions are locked in `mise.lock`.
+
+## CI and releases
+
+- `CI.yml` (PRs): build/lint/test on Ubuntu, macOS and Windows, plus a `zizmor` job. Actions are pinned by commit SHA with a `# vX.Y.Z` comment, `persist-credentials: false`, `permissions: {}` at the top and commented per-job permissions.
+- `release-plz.yml` (push to `main`): release-plz (`release-plz.toml`, changelog via `cliff.toml`) opens the release PR; merging it publishes to crates.io, tags `vX.Y.Z` and creates the GitHub release. The `homebrew` job then builds `gitrat.tar.gz` with releasor on macOS, uploads it to the release and updates `gitrat.rb` in `heroesofcode/homebrew-taps`.
+- Never bump the version in `Cargo.toml` by hand; release-plz does it.
 
 ## Architecture
 

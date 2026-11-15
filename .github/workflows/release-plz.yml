@@ -1,0 +1,121 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-plz-release:
+    name: Release
+    environment: release
+    if: github.repository_owner == 'heroesofcode'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    outputs:
+      releases_created: ${{ steps.release-plz.outputs.releases_created }}
+      releases: ${{ steps.release-plz.outputs.releases }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mise install
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        with:
+          install_args: rust
+
+      - name: Run release-plz
+        id: release-plz
+        uses: release-plz/action@66b324fd6c72d05d2a08568492ecdd62bfb8a62b # v0.5.148
+        with:
+          command: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+  release-plz-pr:
+    name: Release PR
+    environment: release
+    if: github.repository_owner == 'heroesofcode'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mise install
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        with:
+          install_args: rust
+
+      - name: Run release-plz
+        uses: release-plz/action@66b324fd6c72d05d2a08568492ecdd62bfb8a62b # v0.5.148
+        with:
+          command: release-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+
+  homebrew:
+    name: Homebrew
+    environment: release
+    needs: release-plz-release
+    if: needs.release-plz-release.outputs.releases_created == 'true'
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ fromJSON(needs.release-plz-release.outputs.releases)[0].tag }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.TAG }}
+          persist-credentials: false
+
+      - name: Mise install
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        with:
+          install_args: rust cargo:releasor
+
+      - name: Package with releasor
+        run: mise run package
+
+      - name: Upload to the GitHub release
+        run: gh release upload "$TAG" gitrat.tar.gz --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: heroesofcode/homebrew-taps
+          path: homebrew-taps
+          persist-credentials: false
+
+      - name: Update formula
+        working-directory: homebrew-taps
+        env:
+          RELEASE_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          sha=$(shasum -a 256 ../gitrat.tar.gz | cut -d ' ' -f 1)
+          url="https://github.com/heroesofcode/gitrat/releases/download/$TAG/gitrat.tar.gz"
+          sed -i '' -E "s|^( *url ).*|\1\"$url\"|; s|^( *sha256 ).*|\1\"$sha\"|" gitrat.rb
+          git diff
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "gitrat ${TAG#v}"
+          git push "https://x-access-token:${RELEASE_TOKEN}@github.com/heroesofcode/homebrew-taps.git" HEAD:main
