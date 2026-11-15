@@ -1,9 +1,7 @@
 [workspace]
-# Changelog generated with git-cliff using the project's cliff.toml.
 changelog_config = "cliff.toml"
 changelog_update = true
-# Tag `vX.Y.Z` and create the GitHub release; the release workflow then
-# attaches the macOS binary built by releasor and updates the Homebrew tap.
+features_always_increment_minor = true
 git_tag_enable = true
 git_tag_name = "v{{ version }}"
 git_release_enable = true
