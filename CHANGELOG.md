@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.2.0] - 2026-11-15
+
+### Bug Fixes
+
+- Address clippy warnings and fix import ordering ([#11](https://github.com/heroesofcode/gitrat/pull/11))
+
+### Features
+
+- README screenshot and Linux/Windows support ([#14](https://github.com/heroesofcode/gitrat/pull/14))
+- Improve robustness, macOS Terminal support and diff view ([#13](https://github.com/heroesofcode/gitrat/pull/13))
+- Add push option ([#12](https://github.com/heroesofcode/gitrat/pull/12))
+- Add clap for CLI argument parsing ([#10](https://github.com/heroesofcode/gitrat/pull/10))
+
+### Ci
+
+- Bump minor version on feat commits ([#17](https://github.com/heroesofcode/gitrat/pull/17))
+- Release with release-plz, releasor and Homebrew tap; audit workflows with zizmor ([#15](https://github.com/heroesofcode/gitrat/pull/15))
+
+
+
 ## [0.1.0] - 2026-04-04
 
 ### Bug Fixes
