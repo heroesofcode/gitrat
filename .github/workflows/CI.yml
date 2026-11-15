@@ -1,24 +1,34 @@
 name: CI
 on: [pull_request]
 
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    name: Build (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Mise install
-        uses: jdx/mise-action@641a2bcbed5ce4f7aa8ffed0a3af42b65cdf1094
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
         with:
           cache: true
-          experimental: true
 
-      - uses: Swatinem/rust-cache@f51f967e158417aafa338a1e46ab22095f07aa01
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
 
       - name: Run build
         run: mise build
@@ -29,3 +39,23 @@ jobs:
       - name: Run tests
         run: mise test
 
+  zizmor:
+    name: Audit workflows (zizmor)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Mise install
+        uses: jdx/mise-action@d5574b52816a478f9d4e6529a3f6ff17a8a36785 # v5.2.8
+        with:
+          install_args: zizmor
+
+      - name: Audit workflows
+        run: mise run zizmor
+        env:
+          GH_TOKEN: ${{ github.token }}
