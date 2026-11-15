@@ -8,7 +8,7 @@ use two_face::theme::EmbeddedThemeName;
 /// Which colour scheme to use, chosen on the command line.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum ThemeChoice {
-	/// Detect from `COLORFGBG` or the macOS appearance setting.
+	/// Detect from `COLORFGBG` or the system light/dark setting.
 	Auto,
 	/// Colours for a dark terminal background.
 	Dark,
@@ -124,6 +124,10 @@ fn detect_truecolor() -> bool {
 	if matches!(colorterm.as_str(), "truecolor" | "24bit") {
 		return true;
 	}
+	// Windows Terminal supports 24-bit colour but does not set `COLORTERM`.
+	if std::env::var_os("WT_SESSION").is_some() {
+		return true;
+	}
 	let program = std::env::var("TERM_PROGRAM").unwrap_or_default();
 	matches!(
 		program.as_str(),
@@ -139,17 +143,53 @@ fn detect_dark() -> bool {
 		return matches!(bg, 0..=6 | 8);
 	}
 
-	// Terminal.app's default profile follows the system appearance.
+	system_prefers_dark().unwrap_or(true)
+}
+
+/// The desktop's light/dark setting, which most default terminal profiles follow.
+fn system_prefers_dark() -> Option<bool> {
 	if cfg!(target_os = "macos") {
-		return Command::new("defaults")
-			.args(["read", "-g", "AppleInterfaceStyle"])
-			.stdin(Stdio::null())
-			.stderr(Stdio::null())
-			.output()
-			.is_ok_and(|o| String::from_utf8_lossy(&o.stdout).trim() == "Dark");
+		// The key only exists in dark mode, so a failed read means light.
+		let style = command_stdout("defaults", &["read", "-g", "AppleInterfaceStyle"]);
+		return Some(style.as_deref() == Some("Dark"));
 	}
 
-	true
+	if cfg!(windows) {
+		let out = command_stdout(
+			"reg",
+			&[
+				"query",
+				r"HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+				"/v",
+				"AppsUseLightTheme",
+			],
+		)?;
+		// `AppsUseLightTheme    REG_DWORD    0x0` means dark.
+		return Some(out.ends_with("0x0"));
+	}
+
+	// Linux and other Unix desktops: GNOME/GTK expose the preference via gsettings.
+	let scheme = command_stdout(
+		"gsettings",
+		&["get", "org.gnome.desktop.interface", "color-scheme"],
+	)?;
+	match scheme.trim_matches('\'') {
+		"prefer-dark" => Some(true),
+		"prefer-light" => Some(false),
+		_ => None,
+	}
+}
+
+/// Trimmed stdout of a successful command, or `None` if it is missing or fails.
+fn command_stdout(program: &str, args: &[&str]) -> Option<String> {
+	let out = Command::new(program)
+		.args(args)
+		.stdin(Stdio::null())
+		.stderr(Stdio::null())
+		.output()
+		.ok()
+		.filter(|o| o.status.success());
+	Some(String::from_utf8_lossy(&out?.stdout).trim().to_owned())
 }
 
 /// Nearest xterm-256 colour (6×6×6 cube or grey ramp).
