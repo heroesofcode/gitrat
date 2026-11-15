@@ -33,7 +33,7 @@ struct Cli {
 	#[arg(long)]
 	no_mouse: bool,
 
-	/// Colour scheme for the diff: auto-detects light/dark from the terminal or macOS.
+	/// Colour scheme for the diff: auto-detects light/dark from the terminal or the OS.
 	#[arg(long, value_enum, default_value_t = theme::ThemeChoice::Auto)]
 	theme: theme::ThemeChoice,
 }

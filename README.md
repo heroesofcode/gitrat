@@ -60,13 +60,21 @@ files change, and runs `git push` in the background so the UI never freezes.
 In the commit bar: `Ctrl-W` (or `Option-Delete` with "Use Option as Meta key") deletes a word, `Ctrl-U` clears, and
 pasting multi-line text is safe (newlines become spaces).
 
-### macOS Terminal.app
+### Platforms
 
-Light or dark colours are picked from `COLORFGBG` or, on macOS, the system
-appearance (which Terminal.app's default profile follows); override with
-`--theme light|dark`. 24-bit colour is used when the terminal advertises it
-(`COLORTERM=truecolor`, iTerm2, Ghostty, WezTerm…), otherwise a 256-colour palette. Terminal.app keeps `PageUp`,
-`PageDown`, `Home` and `End` for its own scrollback, so every diff action also has a
-letter binding. To select text with the mouse while gitrat is running, hold `Fn`
-(or start with `--no-mouse`). `git push` never prompts inside the TUI: use the
-macOS keychain credential helper or an SSH agent.
+gitrat runs on macOS, Linux and Windows; it only needs `git` on the `PATH`.
+
+Light or dark colours are picked from `COLORFGBG` or, failing that, the system
+appearance: macOS dark mode, the GNOME/GTK `color-scheme` setting on Linux, or
+the Windows app theme. Override with `--theme light|dark`. 24-bit colour is used
+when the terminal advertises it (`COLORTERM=truecolor`, Windows Terminal, iTerm2,
+Ghostty, WezTerm…), otherwise a 256-colour palette.
+
+`git push` never prompts inside the TUI: use a credential helper (macOS keychain,
+Git Credential Manager, libsecret…) or an SSH agent.
+
+To select text with the mouse while gitrat is running, hold `Fn` on macOS or
+`Shift` in most Linux and Windows terminals (or start with `--no-mouse`).
+
+Terminal.app keeps `PageUp`, `PageDown`, `Home` and `End` for its own scrollback,
+so every diff action also has a letter binding.

@@ -545,6 +545,8 @@ pub(crate) mod tests {
 			git(&["config", "user.email", "test@example.com"]);
 			git(&["config", "commit.gpgsign", "false"]);
 			git(&["config", "core.hooksPath", "/dev/null"]);
+			// Git for Windows defaults to CRLF conversion, which would change diffs.
+			git(&["config", "core.autocrlf", "false"]);
 
 			let repo = Repo::discover(&dir).unwrap();
 			Self { dir, repo }
