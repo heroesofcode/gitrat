@@ -196,7 +196,7 @@ fn command_stdout(program: &str, args: &[&str]) -> Option<String> {
 }
 
 /// Nearest xterm-256 colour (6×6×6 cube or grey ramp).
-fn rgb_to_256(r: u8, g: u8, b: u8) -> u8 {
+pub fn rgb_to_256(r: u8, g: u8, b: u8) -> u8 {
 	const LEVELS: [u8; 6] = [0, 95, 135, 175, 215, 255];
 	let level = |v: u8| -> usize {
 		match v {
@@ -226,29 +226,5 @@ fn rgb_to_256(r: u8, g: u8, b: u8) -> u8 {
 		232 + grey_index
 	} else {
 		16 + (36 * ri + 6 * gi + bi) as u8
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn converts_to_256() {
-		assert_eq!(rgb_to_256(0, 0, 0), 16);
-		assert_eq!(rgb_to_256(255, 255, 255), 231);
-		assert_eq!(rgb_to_256(255, 0, 0), 196);
-		assert_eq!(rgb_to_256(128, 128, 128), 244);
-	}
-
-	#[test]
-	fn builds_both_variants() {
-		for dark in [true, false] {
-			for truecolor in [true, false] {
-				let theme = Theme::new(dark, truecolor);
-				assert_eq!(theme.truecolor, truecolor);
-				assert!(theme.syntax.settings.foreground.is_some());
-			}
-		}
 	}
 }

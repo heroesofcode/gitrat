@@ -532,7 +532,7 @@ fn render_help(frame: &mut Frame, area: Rect, accent: Color) {
 }
 
 /// Truncates `text` from the left with `…` so the end (the file name) stays visible.
-fn truncate_left(text: &str, max: usize) -> String {
+pub fn truncate_left(text: &str, max: usize) -> String {
 	if text.width() <= max {
 		return text.to_string();
 	}
@@ -557,7 +557,7 @@ fn truncate_left(text: &str, max: usize) -> String {
 }
 
 /// Truncates `text` from the right with `…`.
-fn truncate_right(text: &str, max: usize) -> String {
+pub fn truncate_right(text: &str, max: usize) -> String {
 	if text.width() <= max {
 		return text.to_string();
 	}
@@ -580,7 +580,7 @@ fn truncate_right(text: &str, max: usize) -> String {
 
 /// Returns the longest suffix of `text` that fits in `max` columns (so the
 /// commit input scrolls horizontally while typing long messages).
-fn tail_fitting(text: &str, max: usize) -> &str {
+pub fn tail_fitting(text: &str, max: usize) -> &str {
 	let mut width = 0;
 	let mut start = text.len();
 	for (i, c) in text.char_indices().rev() {
@@ -597,7 +597,7 @@ fn tail_fitting(text: &str, max: usize) -> &str {
 }
 
 /// Drops the first `cols` display columns of `text` (horizontal diff scroll).
-fn skip_columns(text: &str, cols: usize) -> String {
+pub fn skip_columns(text: &str, cols: usize) -> String {
 	if cols == 0 {
 		return text.to_string();
 	}
@@ -619,42 +619,4 @@ fn skip_columns(text: &str, cols: usize) -> String {
 	}
 
 	out
-}
-
-#[cfg(test)]
-mod tests {
-	use ratatui::Terminal;
-	use ratatui::backend::TestBackend;
-
-	use super::*;
-
-	#[test]
-	fn truncation_helpers() {
-		assert_eq!(truncate_left("src/very/long/path.rs", 10), "…g/path.rs");
-		assert_eq!(truncate_left("short", 10), "short");
-		assert_eq!(truncate_right("hello world", 6), "hello…");
-		assert_eq!(tail_fitting("ação rápida", 6), "rápida");
-		assert_eq!(tail_fitting("日本語", 4), "本語");
-		assert_eq!(skip_columns("abcdef", 2), "cdef");
-		assert_eq!(skip_columns("日本語", 1), " 本語");
-	}
-
-	#[test]
-	fn renders_in_small_and_large_terminals() {
-		let t = crate::git::tests::TempRepo::new();
-		t.write("dir/a file with a very long name.txt", "x\ty\u{1b}[2J\n");
-		let mut app = App::new(t.repo.clone(), Theme::new(true, false));
-		for (w, h) in [(10, 5), (40, 12), (79, 24), (200, 60)] {
-			let mut terminal = Terminal::new(TestBackend::new(w, h)).unwrap();
-			for mode in [
-				Mode::Normal,
-				Mode::Input,
-				Mode::Help,
-				Mode::Confirm(Confirm::Revert),
-			] {
-				app.mode = mode;
-				terminal.draw(|f| render(f, &mut app)).unwrap();
-			}
-		}
-	}
 }
