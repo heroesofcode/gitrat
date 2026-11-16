@@ -58,6 +58,7 @@ fn enter(stdout: &mut Stdout, options: Options) -> io::Result<()> {
 	if options.mouse {
 		execute!(stdout, EnableMouseCapture)?;
 	}
+
 	Ok(())
 }
 
@@ -67,6 +68,7 @@ pub fn restore(options: Options) -> io::Result<()> {
 	if options.mouse {
 		let _ = execute!(stdout, DisableMouseCapture);
 	}
+
 	let _ = execute!(
 		stdout,
 		DisableFocusChange,

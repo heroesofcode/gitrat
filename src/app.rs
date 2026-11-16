@@ -182,6 +182,7 @@ impl App {
 		} else {
 			self.selected = self.selected.min(self.files.len() - 1);
 		}
+
 		self.list_state.select(Some(self.selected));
 
 		let same_file = previous.as_deref() == self.selected_file().map(|f| f.path.as_str());
@@ -214,6 +215,7 @@ impl App {
 				self.diff_source = None;
 			}
 		}
+
 		self.clamp_scroll();
 	}
 
@@ -252,6 +254,7 @@ impl App {
 		if self.files.is_empty() || index == self.selected && self.diff_source.is_some() {
 			return;
 		}
+
 		self.selected = index.min(self.files.len() - 1);
 		self.list_state.select(Some(self.selected));
 		self.diff_scroll = 0;
@@ -290,6 +293,7 @@ impl App {
 		if row < inner_top || row >= self.files_area.bottom().saturating_sub(1) {
 			return;
 		}
+
 		let index = self.list_state.offset() + usize::from(row - inner_top);
 		if index < self.files.len() {
 			self.select(index);
@@ -303,6 +307,7 @@ impl App {
 		let Some(file) = self.selected_file().cloned() else {
 			return;
 		};
+
 		let result = action(&self.repo, &file);
 		self.report(result);
 		self.refresh();
@@ -369,6 +374,7 @@ impl App {
 		let Mode::Confirm(action) = self.mode else {
 			return;
 		};
+
 		self.mode = Mode::Normal;
 		match action {
 			Confirm::Revert => self.with_selected(|repo, file| repo.revert(file)),
@@ -476,6 +482,7 @@ impl App {
 		if self.is_pushing() {
 			return;
 		}
+
 		let (tx, rx) = mpsc::channel();
 		let repo = self.repo.clone();
 		thread::spawn(move || {
@@ -498,6 +505,7 @@ impl App {
 			}
 			Err(e) => self.set_message(MessageKind::Error, e),
 		}
+
 		self.refresh();
 	}
 }
