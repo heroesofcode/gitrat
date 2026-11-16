@@ -1,22 +1,18 @@
-mod app;
-mod diff;
-mod event_handler;
-mod git;
-mod terminal;
-mod theme;
-mod types;
-mod ui;
-
 use std::io;
 use std::io::IsTerminal;
 use std::path::PathBuf;
 use std::process::ExitCode;
 use std::time::Duration;
 
-use app::App;
 use clap::Parser;
 use crossterm::event;
 use crossterm::event::Event;
+use gitrat::app::App;
+use gitrat::event_handler;
+use gitrat::git;
+use gitrat::terminal;
+use gitrat::theme;
+use gitrat::ui;
 
 /// How long to wait for input before running background work (push results,
 /// auto-refresh, message expiry).

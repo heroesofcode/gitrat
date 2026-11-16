@@ -37,17 +37,19 @@ Rust 1.100 (edition 2024), pinned in `mise.toml` and `rust-version` in `Cargo.to
 
 ## Architecture
 
-gitrat is a terminal UI (TUI) for staging, viewing diffs, and committing — a lightweight alternative to `git add -p`. It has no library crates, only a single binary.
+gitrat is a terminal UI (TUI) for staging, viewing diffs, and committing — a lightweight alternative to `git add -p`. `src/lib.rs` exposes every module as a library so integration tests can use it; `src/main.rs` is the binary (CLI + event loop).
+
+**Tests** live in `tests/` (one file per module: `git.rs`, `diff.rs`, `ui.rs`, `app.rs`, `theme.rs`), not in inline `#[cfg(test)]` modules. `tests/common/mod.rs` has `TempRepo`, which creates throwaway git repositories. Anything a test needs must be `pub`.
 
 **Data flow:**
-1. `git.rs` — `Repo` (found via `git rev-parse --show-toplevel`) runs every git command from the repo root with stdin closed, `GIT_TERMINAL_PROMPT=0` and `GIT_OPTIONAL_LOCKS=0`. Parses `git status --porcelain=v1 -z --branch` into `Status { branch, files }`, builds diffs (`--no-color --no-ext-diff`, capped at 20k lines, control chars sanitized), and exposes stage/unstage/revert/remove/commit/push returning `GitResult<_>` (`Result<_, String>` with a readable message). Has integration tests that create temporary repositories.
+1. `git.rs` — `Repo` (found via `git rev-parse --show-toplevel`) runs every git command from the repo root with stdin closed, `GIT_TERMINAL_PROMPT=0` and `GIT_OPTIONAL_LOCKS=0`. Parses `git status --porcelain=v1 -z --branch` into `Status { branch, files }`, builds diffs (`--no-color --no-ext-diff`, capped at 20k lines, control chars sanitized), and exposes stage/unstage/revert/remove/commit/push returning `GitResult<_>` (`Result<_, String>` with a readable message).
 2. `types.rs` — plain data types: `FileEntry` (path, optional rename origin, raw `XY` status chars, `FileStatus`).
 2b. `diff.rs` — turns raw `DiffSection`s into a `DiffView` of `Row`s (`RowKind`, old/new line numbers, styled `Seg`s). Hides git headers (keeps notes like "new file"/"renamed from"), syntax-highlights with syntect + two-face (bat's syntaxes), and marks changed words via a token-level LCS between paired removed/added lines. Caps: 20k rows, highlighting off above 8k rows or 1k-byte lines.
 2c. `theme.rs` — `Theme` palette (diff backgrounds, accents, syntax theme OneHalfDark/GitHub). `--theme auto` uses `COLORFGBG`, then the OS setting (macOS `AppleInterfaceStyle`, Windows `AppsUseLightTheme`, GNOME `color-scheme`). Truecolor if `COLORTERM`/`WT_SESSION`/`TERM_PROGRAM` says so, else hand-picked xterm-256 fallbacks.
 3. `app.rs` — `App` owns UI state: files, selection (kept by path across refreshes), `DiffView` + scroll (rebuilt only when the raw diff changes), `Mode` (`Normal`, `Input`, `Confirm`, `Help`), commit input, transient `Message`. `tick()` collects background push results, expires messages and auto-refreshes every 3 s.
 4. `ui.rs` — render function; reads `App` (and records panel rects for mouse hit-testing). 30/70 side-by-side layout, stacked below 80 columns. Diff rows: `old new ± code` gutter, full-width tinted backgrounds, hunk header bars. Syntax tokens using the theme's default foreground render as `Color::Reset` so text stays readable if light/dark detection is wrong.
 5. `terminal.rs` — raw mode, alternate screen, bracketed paste, focus events, optional mouse capture, and a panic hook that restores the terminal.
-6. `main.rs` — clap CLI (`[PATH]`, `--no-mouse`, `--theme`), repo discovery before entering the TUI, poll-based event loop (250 ms tick).
+6. `main.rs` — binary entry point using the `gitrat` lib: clap CLI (`[PATH]`, `--no-mouse`, `--theme`), repo discovery before entering the TUI, poll-based event loop (250 ms tick).
 7. `event_handler.rs` — key/mouse/paste dispatch per `Mode`.
 
 **Key behaviors:**

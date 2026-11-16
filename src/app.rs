@@ -511,27 +511,9 @@ impl App {
 }
 
 /// Removes the last whitespace-separated word (and trailing spaces) from `text`.
-fn delete_last_word(text: &mut String) {
+pub fn delete_last_word(text: &mut String) {
 	let trimmed = text.trim_end_matches(' ').len();
 	text.truncate(trimmed);
 	let cut = text.rfind(' ').map_or(0, |i| i + 1);
 	text.truncate(cut);
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-
-	#[test]
-	fn deletes_last_word() {
-		let mut text = "fix: ação  rápida  ".to_string();
-		delete_last_word(&mut text);
-		assert_eq!(text, "fix: ação  ");
-		delete_last_word(&mut text);
-		assert_eq!(text, "fix: ");
-		delete_last_word(&mut text);
-		assert_eq!(text, "");
-		delete_last_word(&mut text);
-		assert_eq!(text, "");
-	}
 }
