@@ -46,8 +46,8 @@ Generates a PR description from local changes and creates the pull request on Gi
    - Return the PR URL to the user.
 
 7. **Monitor CI and Cursor Bugbot**
-   - Watch `gh pr checks <number>` until no check is pending (poll every ~30 s in the background; don't sleep in the foreground). The checks are `Build` on Ubuntu, macOS and Windows, `Audit workflows (zizmor)` and `Cursor Bugbot`.
-   - When all checks are done, read Bugbot's findings: `gh api repos/{owner}/{repo}/pulls/<number>/comments` (inline comments) and `gh api repos/{owner}/{repo}/pulls/<number>/reviews`. A passing `Cursor Bugbot` check can still leave comments, so always read them.
+   - Watch `gh pr checks <number> --json name,bucket` (poll every ~30 s in the background; don't sleep in the foreground) until **all five expected checks are listed** and none is pending: `Build (ubuntu-latest)`, `Build (macos-latest)`, `Build (windows-latest)`, `Audit workflows (zizmor)` and `Cursor Bugbot`. Right after `gh pr create` GitHub may not have registered any runs yet, and an empty or partial list is not "done".
+   - When all checks are done, read Bugbot's findings: `gh api repos/{owner}/{repo}/pulls/<number>/comments` (inline comments) and `gh api repos/{owner}/{repo}/pulls/<number>/reviews`. Bugbot can finish as `pass` or `skipping` and still post findings, so always read them.
 
 8. **Fix problems, then repeat**
    - If a check fails, read the log (`gh run view <run-id> --log-failed`), reproduce locally (`cargo build`, `cargo clippy --all-targets --all-features`, `cargo test`, `cargo fmt --all -- --check`, `mise run zizmor`) and fix the cause.
@@ -57,7 +57,7 @@ Generates a PR description from local changes and creates the pull request on Gi
 
 9. **Merge**
    - Only when every check passed and no Bugbot finding is left unresolved: `gh pr merge <number> --squash --delete-branch` (the repository only allows squash merges).
-   - Switch back to `main`, `git pull --ff-only`, delete the local branch (`git branch -D <branch>`, needed because squash merges are not ancestors) and `git fetch --prune`.
+   - Switch back to `main` and `git pull --ff-only`. `gh pr merge --delete-branch` sometimes deletes the local branch too (not when run with `--repo`), so delete it only if it still exists: `git show-ref --verify --quiet refs/heads/<branch> && git branch -D <branch>` (`-D` because squash merges are not ancestors). Then `git fetch --prune`.
    - Tell the user the PR was merged, with the merge commit, and list any fixes made along the way.
 
 ## Output Template (PR body)
