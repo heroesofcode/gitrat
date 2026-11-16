@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.3.0] - 2026-11-16
+
+### Features
+
+- Split the file list into Staged and Unstaged sections ([#22](https://github.com/heroesofcode/gitrat/pull/22))
+
+### Styling
+
+- Add blank line after blocks before the next statement ([#18](https://github.com/heroesofcode/gitrat/pull/18))
+
+### Testing
+
+- Move tests to the tests/ directory ([#20](https://github.com/heroesofcode/gitrat/pull/20))
+
+
+
 ## [0.2.0] - 2026-11-15
 
 ### Bug Fixes
