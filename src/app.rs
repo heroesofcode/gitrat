@@ -15,6 +15,7 @@ use crate::git::GitResult;
 use crate::git::Repo;
 use crate::theme::Theme;
 use crate::types::FileEntry;
+use crate::types::FileGroup;
 
 /// How often the file list is re-read from git while idle.
 const AUTO_REFRESH: Duration = Duration::from_secs(3);
@@ -54,6 +55,15 @@ pub enum MessageKind {
 	Error,
 }
 
+/// One row of the file list: a group header or a file.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ListRow {
+	/// Section header with the number of files in the group.
+	Header(FileGroup, usize),
+	/// Index into [`App::files`].
+	File(usize),
+}
+
 /// A transient message shown in the commit bar title.
 #[derive(Debug, Clone)]
 pub struct Message {
@@ -75,11 +85,12 @@ pub struct App {
 	pub theme: Theme,
 	/// Branch description from `git status --branch`.
 	pub branch: String,
-	/// List of changed/untracked files from `git status`.
+	/// List of changed/untracked files from `git status`, staged group first.
 	pub files: Vec<FileEntry>,
 	/// Index into `files` of the currently highlighted entry.
 	pub selected: usize,
-	/// Ratatui list widget state, kept in sync with `selected`.
+	/// Ratatui list widget state, kept in sync with `selected` (indexes
+	/// [`list_rows`](App::list_rows), which include group headers).
 	pub list_state: ListState,
 	/// Processed diff for the currently selected file.
 	pub diff: DiffView,
@@ -164,6 +175,8 @@ impl App {
 
 		self.branch = status.branch;
 		self.files = status.files;
+		// Stable sort: git's path order is kept inside each group.
+		self.files.sort_by_key(FileEntry::group);
 
 		if self.files.is_empty() {
 			self.selected = 0;
@@ -183,7 +196,7 @@ impl App {
 			self.selected = self.selected.min(self.files.len() - 1);
 		}
 
-		self.list_state.select(Some(self.selected));
+		self.list_state.select(Some(self.row_of(self.selected)));
 
 		let same_file = previous.as_deref() == self.selected_file().map(|f| f.path.as_str());
 		if !same_file {
@@ -256,7 +269,7 @@ impl App {
 		}
 
 		self.selected = index.min(self.files.len() - 1);
-		self.list_state.select(Some(self.selected));
+		self.list_state.select(Some(self.row_of(self.selected)));
 		self.diff_scroll = 0;
 		self.diff_hscroll = 0;
 		self.load_diff();
@@ -287,7 +300,40 @@ impl App {
 		self.select(self.files.len().saturating_sub(1));
 	}
 
+	/// Rows of the file list: a header before each non-empty group, then its files.
+	pub fn list_rows(&self) -> Vec<ListRow> {
+		let mut rows = Vec::with_capacity(self.files.len() + 2);
+		let mut current = None;
+		for (i, file) in self.files.iter().enumerate() {
+			let group = file.group();
+			if current != Some(group) {
+				current = Some(group);
+				let count = self.files[i..]
+					.iter()
+					.take_while(|f| f.group() == group)
+					.count();
+				rows.push(ListRow::Header(group, count));
+			}
+
+			rows.push(ListRow::File(i));
+		}
+
+		rows
+	}
+
+	/// List row of the file at `index` (accounts for the group headers above it).
+	pub fn row_of(&self, index: usize) -> usize {
+		let staged = self
+			.files
+			.iter()
+			.take_while(|f| f.group() == FileGroup::Staged)
+			.count();
+		// The first group always has a header; files past it also sit below the second.
+		index + 1 + usize::from(staged > 0 && index >= staged)
+	}
+
 	/// Selects the file at screen row `row` (mouse click in the file list).
+	/// Clicks on group headers are ignored.
 	pub fn click_file(&mut self, row: u16) {
 		let inner_top = self.files_area.y + 1;
 		if row < inner_top || row >= self.files_area.bottom().saturating_sub(1) {
@@ -295,8 +341,8 @@ impl App {
 		}
 
 		let index = self.list_state.offset() + usize::from(row - inner_top);
-		if index < self.files.len() {
-			self.select(index);
+		if let Some(ListRow::File(file)) = self.list_rows().get(index) {
+			self.select(*file);
 		}
 	}
 

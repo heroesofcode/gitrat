@@ -40,4 +40,24 @@ impl FileEntry {
 	pub fn is_new_in_index(&self) -> bool {
 		self.index == 'A'
 	}
+
+	/// The list section this file belongs to.
+	///
+	/// Files with both staged and unstaged changes (`±`) stay in the staged group,
+	/// since part of them goes into the next commit.
+	pub fn group(&self) -> FileGroup {
+		match self.status {
+			FileStatus::Staged | FileStatus::StagedModified => FileGroup::Staged,
+			_ => FileGroup::Unstaged,
+		}
+	}
+}
+
+/// Section of the file list an entry is shown in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum FileGroup {
+	/// Changes that will go into the next commit.
+	Staged,
+	/// Working-tree changes, untracked and conflicted files.
+	Unstaged,
 }
