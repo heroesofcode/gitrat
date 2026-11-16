@@ -148,11 +148,13 @@ impl Repo {
 		if cached {
 			args.push("--cached");
 		}
+
 		args.push("--");
 		args.push(&file.path);
 		if cached && let Some(orig) = &file.orig_path {
 			args.push(orig);
 		}
+
 		self.run(args)
 	}
 
@@ -184,6 +186,7 @@ impl Repo {
 		if let Some(orig) = &file.orig_path {
 			paths.push(orig);
 		}
+
 		self.unstage_paths(&paths)
 	}
 
@@ -239,6 +242,7 @@ impl Repo {
 				if let Some(orig) = &file.orig_path {
 					self.run(["restore", "--", orig.as_str()])?;
 				}
+
 				Ok(format!("reverted rename of {}", file.path))
 			}
 			_ if file.has_staged() => self
@@ -268,6 +272,7 @@ impl Repo {
 				self.run(["rm", "-f", "--quiet", "--", &file.path])?;
 			}
 		}
+
 		Ok(format!("removed {}", file.path))
 	}
 
@@ -277,6 +282,7 @@ impl Repo {
 		if message.is_empty() {
 			return Err("commit message is empty".to_string());
 		}
+
 		if !self.has_staged_changes()? {
 			return Err("nothing staged to commit (Space stages a file, a stages all)".to_string());
 		}
@@ -390,6 +396,7 @@ pub fn parse_status(text: &str) -> Status {
 		else {
 			continue;
 		};
+
 		let path = chars.as_str().to_string();
 
 		let orig_path = if matches!(index, 'R' | 'C') {
@@ -432,6 +439,7 @@ pub fn sanitize(text: &str) -> String {
 			c => out.push(c),
 		}
 	}
+
 	out
 }
 
@@ -540,6 +548,7 @@ pub(crate) mod tests {
 					.success();
 				assert!(ok, "git {args:?} failed");
 			};
+
 			git(&["init", "--quiet", "--initial-branch=main"]);
 			git(&["config", "user.name", "gitrat test"]);
 			git(&["config", "user.email", "test@example.com"]);

@@ -140,10 +140,12 @@ pub fn build(sections: &[DiffSection], path: &str, theme: &Theme) -> DiffView {
 			if i > 0 {
 				raw.push(raw_row(RowKind::Info, ""));
 			}
+
 			if let Some(title) = &section.title {
 				raw.push(raw_row(RowKind::Section, title));
 			}
 		}
+
 		let before = raw.len();
 		parse(&section.text, &mut raw);
 		if raw.len() == before {
@@ -177,6 +179,7 @@ pub fn build(sections: &[DiffSection], path: &str, theme: &Theme) -> DiffView {
 			RowKind::Removed => view.removed += 1,
 			_ => {}
 		}
+
 		view.max_line_no = view
 			.max_line_no
 			.max(row.old.unwrap_or(0))
@@ -195,9 +198,11 @@ pub fn build(sections: &[DiffSection], path: &str, theme: &Theme) -> DiffView {
 							if let Some(old) = old_hl.as_mut() {
 								let _ = old.highlight_line(&row.text, set);
 							}
+
 							new_hl.as_mut()
 						}
 					};
+
 					hl.and_then(|h| h.highlight_line(&row.text, set).ok())
 						.map(|ranges| {
 							ranges
@@ -206,6 +211,7 @@ pub fn build(sections: &[DiffSection], path: &str, theme: &Theme) -> DiffView {
 								.collect::<Vec<_>>()
 						})
 				};
+
 				let pieces = highlighted.unwrap_or_else(|| vec![(Style::default(), row.text.as_str())]);
 				split_emphasis(&pieces, &row.emph)
 			}
@@ -328,6 +334,7 @@ fn parse(text: &str, rows: &mut Vec<RawRow>) {
 			if let Some(note) = header_note(line) {
 				rows.push(raw_row(RowKind::Info, &note));
 			}
+
 			continue;
 		}
 
@@ -356,9 +363,11 @@ fn parse(text: &str, rows: &mut Vec<RawRow>) {
 			RowKind::Removed => (Some(old), None),
 			_ => (Some(old), Some(new)),
 		};
+
 		if kind != RowKind::Added {
 			old += 1;
 		}
+
 		if kind != RowKind::Removed {
 			new += 1;
 		}
@@ -418,6 +427,7 @@ fn header_note(line: &str) -> Option<String> {
 	} else {
 		return None;
 	};
+
 	Some(note)
 }
 
@@ -430,10 +440,12 @@ fn mark_word_changes(rows: &mut [RawRow]) {
 			i += 1;
 			continue;
 		}
+
 		let removed_start = i;
 		while i < rows.len() && rows[i].kind == RowKind::Removed {
 			i += 1;
 		}
+
 		let added_start = i;
 		while i < rows.len() && rows[i].kind == RowKind::Added {
 			i += 1;
@@ -464,13 +476,16 @@ fn tokens(text: &str) -> Vec<Range<usize>> {
 					out.push(s..i);
 					start = None;
 				}
+
 				out.push(i..i + c.len_utf8());
 			}
 		}
 	}
+
 	if let Some(s) = start {
 		out.push(s..text.len());
 	}
+
 	out
 }
 
@@ -485,6 +500,7 @@ fn changed_ranges(old: &str, new: &str) -> Option<(Ranges, Ranges)> {
 	if ot.len() > MAX_WORD_DIFF_TOKENS || nt.len() > MAX_WORD_DIFF_TOKENS {
 		return None;
 	}
+
 	let same = |i: usize, j: usize| old[ot[i].clone()] == new[nt[j].clone()];
 
 	// lcs[i][j] = LCS length of ot[i..] and nt[j..].
@@ -522,6 +538,7 @@ fn changed_ranges(old: &str, new: &str) -> Option<(Ranges, Ranges)> {
 	if total == 0 || (old_changed.is_empty() && new_changed.is_empty()) {
 		return None;
 	}
+
 	if (common as f32 / total as f32) < MIN_SIMILARITY {
 		return None;
 	}
@@ -546,12 +563,15 @@ fn merge_tokens(text: &str, tokens: &[Range<usize>], changed: &[usize]) -> Vec<R
 				.all(char::is_whitespace),
 			_ => false,
 		};
+
 		match ranges.last_mut() {
 			Some(range) if bridge => range.end = token.end,
 			_ => ranges.push(token),
 		}
+
 		last_index = Some(index);
 	}
+
 	ranges
 }
 
@@ -564,12 +584,15 @@ fn convert_style(style: syntect::highlighting::Style, theme: &Theme) -> Style {
 	} else {
 		out = out.fg(Color::Reset);
 	}
+
 	if style.font_style.contains(FontStyle::BOLD) {
 		out = out.add_modifier(Modifier::BOLD);
 	}
+
 	if style.font_style.contains(FontStyle::ITALIC) {
 		out = out.add_modifier(Modifier::ITALIC);
 	}
+
 	out
 }
 
@@ -580,6 +603,7 @@ fn split_emphasis(pieces: &[(Style, &str)], emph: &[Range<usize>]) -> Vec<Seg> {
 		if text.is_empty() {
 			return;
 		}
+
 		let text = sanitize(text);
 		match segs.last_mut() {
 			Some(last) if last.style == style && last.emph == emph => last.text.push_str(&text),
@@ -601,6 +625,7 @@ fn split_emphasis(pieces: &[(Style, &str)], emph: &[Range<usize>]) -> Vec<Seg> {
 				}
 			}
 		}
+
 		cuts.push(end);
 		cuts.sort_unstable();
 
@@ -610,6 +635,7 @@ fn split_emphasis(pieces: &[(Style, &str)], emph: &[Range<usize>]) -> Vec<Seg> {
 			push(&text[a - start..b - start], *style, emphasized);
 		}
 	}
+
 	segs
 }
 

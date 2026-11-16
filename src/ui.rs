@@ -85,6 +85,7 @@ fn panel(title: Line<'_>, focused: bool) -> Block<'_> {
 	} else {
 		Style::default()
 	};
+
 	Block::default()
 		.borders(Borders::ALL)
 		.border_type(BorderType::Rounded)
@@ -117,6 +118,7 @@ fn render_file_list(frame: &mut Frame, app: &mut App, area: Rect) {
 				Some(orig) => format!("{} → {}", sanitize(orig), sanitize(&file.path)),
 				None => sanitize(&file.path),
 			};
+
 			ListItem::new(Line::from(vec![
 				Span::styled(
 					format!("{icon} "),
@@ -162,6 +164,7 @@ fn render_diff(frame: &mut Frame, app: &App, area: Rect) {
 			} else {
 				String::new()
 			};
+
 			let added = format!("+{}", view.added);
 			let removed = format!(" −{} ", view.removed);
 			let max = width.saturating_sub(pos.width() + added.width() + removed.width() + 4);
@@ -230,6 +233,7 @@ fn diff_row(
 				RowKind::Removed => (Some(theme.del_bg), theme.del_emph_bg, "-", theme.del_fg),
 				_ => (None, Color::Reset, " ", theme.gutter_fg),
 			};
+
 			let base = bg.map_or_else(Style::default, |bg| Style::default().bg(bg));
 			let number = |n: Option<u32>| match n {
 				Some(n) => format!("{n:>number_width$}"),
@@ -261,21 +265,25 @@ fn diff_row(
 						skip -= w;
 						continue;
 					}
+
 					let rest = skip_columns(&seg.text, skip);
 					skip = 0;
 					rest
 				};
+
 				let style = match (bg, seg.emph) {
 					(Some(_), true) => seg.style.bg(emph_bg),
 					(Some(bg), false) => seg.style.bg(bg),
 					(None, _) => seg.style,
 				};
+
 				spans.push(Span::styled(visible, style));
 			}
 
 			if bg.is_some() {
 				fill(&mut spans, base);
 			}
+
 			Line::from(spans)
 		}
 		RowKind::Hunk => {
@@ -292,6 +300,7 @@ fn diff_row(
 					bar.add_modifier(Modifier::ITALIC),
 				));
 			}
+
 			fill(&mut spans, bar);
 			Line::from(spans)
 		}
@@ -306,6 +315,7 @@ fn diff_row(
 			if text.is_empty() {
 				return Line::raw("");
 			}
+
 			Line::from(Span::styled(
 				format!(" • {text}"),
 				Style::default()
@@ -335,6 +345,7 @@ fn render_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
 				Confirm::Revert => format!("Discard all changes to {path}?"),
 				Confirm::Remove => format!("Delete {path}?"),
 			};
+
 			(
 				" Confirm ".to_string(),
 				Color::Red,
@@ -352,6 +363,7 @@ fn render_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
 						MessageKind::Success => Color::Green,
 						MessageKind::Error => Color::Red,
 					};
+
 					(format!(" {} ", sanitize(&msg.text)), color)
 				}
 				(None, Mode::Input) => (
@@ -360,6 +372,7 @@ fn render_commit_bar(frame: &mut Frame, app: &App, area: Rect) {
 				),
 				(None, _) => (" Commit message (c to write) ".to_string(), Color::DarkGray),
 			};
+
 			let visible = tail_fitting(&app.commit_input, inner_width.saturating_sub(1));
 			(title, color, Line::raw(visible))
 		}
@@ -417,9 +430,11 @@ fn render_key_bar(frame: &mut Frame, app: &App, area: Rect) {
 		if used + w > budget {
 			break;
 		}
+
 		used += w;
 		push_key(&mut spans, key, desc, app.theme.hunk_fg);
 	}
+
 	if app.mode == Mode::Normal {
 		push_key(&mut spans, help.0, help.1, app.theme.hunk_fg);
 	}
@@ -475,6 +490,7 @@ fn render_help(frame: &mut Frame, area: Rect, accent: Color) {
 		if i > 0 {
 			lines.push(Line::raw(""));
 		}
+
 		lines.push(Line::styled(
 			*title,
 			Style::default()
@@ -520,9 +536,11 @@ fn truncate_left(text: &str, max: usize) -> String {
 	if text.width() <= max {
 		return text.to_string();
 	}
+
 	if max == 0 {
 		return String::new();
 	}
+
 	let mut width = 1;
 	let mut start = text.len();
 	for (i, c) in text.char_indices().rev() {
@@ -530,9 +548,11 @@ fn truncate_left(text: &str, max: usize) -> String {
 		if width + w > max {
 			break;
 		}
+
 		width += w;
 		start = i;
 	}
+
 	format!("…{}", &text[start..])
 }
 
@@ -541,6 +561,7 @@ fn truncate_right(text: &str, max: usize) -> String {
 	if text.width() <= max {
 		return text.to_string();
 	}
+
 	let mut out = String::new();
 	let mut width = 1;
 	for c in text.chars() {
@@ -548,9 +569,11 @@ fn truncate_right(text: &str, max: usize) -> String {
 		if width + w > max {
 			break;
 		}
+
 		width += w;
 		out.push(c);
 	}
+
 	out.push('…');
 	out
 }
@@ -565,9 +588,11 @@ fn tail_fitting(text: &str, max: usize) -> &str {
 		if width + w > max {
 			break;
 		}
+
 		width += w;
 		start = i;
 	}
+
 	&text[start..]
 }
 
@@ -576,6 +601,7 @@ fn skip_columns(text: &str, cols: usize) -> String {
 	if cols == 0 {
 		return text.to_string();
 	}
+
 	let mut skipped = 0;
 	let mut out = String::new();
 	for c in text.chars() {
@@ -585,10 +611,13 @@ fn skip_columns(text: &str, cols: usize) -> String {
 			if skipped > cols {
 				out.push(' ');
 			}
+
 			continue;
 		}
+
 		out.push(c);
 	}
+
 	out
 }
 

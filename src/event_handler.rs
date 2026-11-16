@@ -47,6 +47,7 @@ pub fn handle_mouse(app: &mut App, mouse: MouseEvent) {
 	if app.mode != Mode::Normal {
 		return;
 	}
+
 	let pos = Position::new(mouse.column, mouse.row);
 	let over_files = app.files_area.contains(pos);
 

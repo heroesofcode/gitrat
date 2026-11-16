@@ -56,6 +56,7 @@ impl Theme {
 			ThemeChoice::Light => false,
 			ThemeChoice::Auto => detect_dark(),
 		};
+
 		Self::new(dark, detect_truecolor())
 	}
 
@@ -74,6 +75,7 @@ impl Theme {
 		} else {
 			EmbeddedThemeName::Github
 		};
+
 		let syntax = two_face::theme::extra().get(syntax_name).clone();
 
 		if dark {
@@ -128,6 +130,7 @@ fn detect_truecolor() -> bool {
 	if std::env::var_os("WT_SESSION").is_some() {
 		return true;
 	}
+
 	let program = std::env::var("TERM_PROGRAM").unwrap_or_default();
 	matches!(
 		program.as_str(),
@@ -202,6 +205,7 @@ fn rgb_to_256(r: u8, g: u8, b: u8) -> u8 {
 			_ => usize::from((v - 35) / 40),
 		}
 	};
+
 	let (ri, gi, bi) = (level(r), level(g), level(b));
 	let cube = (LEVELS[ri], LEVELS[gi], LEVELS[bi]);
 

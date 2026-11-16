@@ -94,6 +94,7 @@ fn event_loop(terminal: &mut terminal::Tui, app: &mut App) -> io::Result<()> {
 					Event::FocusGained => app.refresh(),
 					Event::Resize(..) | Event::FocusLost => {}
 				}
+
 				if app.should_quit || !event::poll(Duration::ZERO)? {
 					break;
 				}
