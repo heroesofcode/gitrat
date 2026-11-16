@@ -20,12 +20,14 @@ use unicode_width::UnicodeWidthStr;
 
 use crate::app::App;
 use crate::app::Confirm;
+use crate::app::ListRow;
 use crate::app::MessageKind;
 use crate::app::Mode;
 use crate::diff::Row;
 use crate::diff::RowKind;
 use crate::git::sanitize;
 use crate::theme::Theme;
+use crate::types::FileGroup;
 use crate::types::FileStatus;
 
 // Only the 16 ANSI colours are used (plus Reset, the terminal's own foreground),
@@ -109,10 +111,25 @@ fn render_file_list(frame: &mut Frame, app: &mut App, area: Rect) {
 	// Room for border (2), highlight symbol (2), status icon and space (2).
 	let max_path = usize::from(area.width.saturating_sub(6));
 
-	let items: Vec<ListItem> = app
-		.files
+	let rows = app.list_rows();
+	let items: Vec<ListItem> = rows
 		.iter()
-		.map(|file| {
+		.map(|row| {
+			let file = match *row {
+				ListRow::Header(group, count) => {
+					let (name, color) = match group {
+						FileGroup::Staged => ("Staged", Color::Green),
+						FileGroup::Unstaged => ("Unstaged", Color::Red),
+					};
+
+					return ListItem::new(Line::styled(
+						format!("{name} ({count})"),
+						Style::default().fg(color).add_modifier(Modifier::BOLD),
+					));
+				}
+				ListRow::File(i) => &app.files[i],
+			};
+
 			let (icon, color) = status_style(file.status);
 			let path = match &file.orig_path {
 				Some(orig) => format!("{} → {}", sanitize(orig), sanitize(&file.path)),
@@ -142,6 +159,15 @@ fn render_file_list(frame: &mut Frame, app: &mut App, area: Rect) {
 		.block(panel(Line::from(title), app.mode == Mode::Normal))
 		.highlight_style(Style::default().add_modifier(Modifier::REVERSED | Modifier::BOLD))
 		.highlight_symbol("▶ ");
+
+	// Keep the group header visible when its first file is selected at the top.
+	if let Some(selected) = app.list_state.selected()
+		&& selected > 0
+		&& app.list_state.offset() >= selected
+		&& matches!(rows.get(selected - 1), Some(ListRow::Header(..)))
+	{
+		*app.list_state.offset_mut() = selected - 1;
+	}
 
 	frame.render_stateful_widget(list, area, &mut app.list_state);
 }

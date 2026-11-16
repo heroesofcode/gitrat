@@ -58,3 +58,4 @@ gitrat is a terminal UI (TUI) for staging, viewing diffs, and committing — a l
 - `p` pushes on a background thread; sets upstream (`branch.<b>.pushRemote`, `remote.pushDefault`, `origin`, or the only remote) when missing; ssh runs with `BatchMode=yes` unless the user configured an ssh command.
 - Diff scroll: `Ctrl-D/U` half page, `Ctrl-F/B` page, `J/K` line, `g/G`, `h/l` horizontal, mouse wheel. Letter bindings exist because Terminal.app swallows PageUp/PageDown/Home/End.
 - `FileStatus::StagedModified` shows staged and unstaged diffs as separate sections (`DiffSection` titles).
+- The file list is split into Staged/Unstaged groups (`FileEntry::group`; `±` files stay in Staged). `App::files` is sorted by group; `list_state` indexes `App::list_rows()` (headers included), so use `App::row_of` to map a file index to a list row. Empty groups have no header.

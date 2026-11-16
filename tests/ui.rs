@@ -42,3 +42,32 @@ fn renders_in_small_and_large_terminals() {
 		}
 	}
 }
+
+#[test]
+fn renders_group_headers() {
+	let t = TempRepo::new();
+	t.write("staged.txt", "s\n");
+	t.write("unstaged.txt", "u\n");
+	t.git(&["add", "staged.txt"]);
+	let mut app = App::new(t.repo.clone(), Theme::new(true, false));
+
+	let mut terminal = Terminal::new(TestBackend::new(100, 20)).unwrap();
+	terminal.draw(|f| render(f, &mut app)).unwrap();
+	let screen: Vec<String> = (0..20)
+		.map(|y| {
+			(0..30)
+				.map(|x| terminal.backend().buffer()[(x, y)].symbol().to_string())
+				.collect()
+		})
+		.collect();
+
+	let line = |text: &str| {
+		screen
+			.iter()
+			.position(|l| l.contains(text))
+			.unwrap_or_else(|| panic!("{text:?} not rendered:\n{}", screen.join("\n")))
+	};
+	assert!(line("Staged (1)") < line("staged.txt"));
+	assert!(line("staged.txt") < line("Unstaged (1)"));
+	assert!(line("Unstaged (1)") < line("unstaged.txt"));
+}
