@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.1] - 2026-11-16
+
+### Documentation
+
+- Monitor CI and Bugbot, fix issues and merge in open-pr skill ([#24](https://github.com/heroesofcode/gitrat/pull/24))
+
+### Chore
+
+- Update releasor to 2.0.2 ([#23](https://github.com/heroesofcode/gitrat/pull/23))
+
+
+
 ## [0.3.0] - 2026-11-16
 
 ### Features
