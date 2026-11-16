@@ -5,7 +5,7 @@ lockfile = true
 rust = { version = "1.100.0", components = "clippy,rustfmt" }
 zizmor = "1.32.0"
 # Packages the release binary (`mise run package`); only needed on macOS.
-"cargo:releasor" = { version = "2.0.1", os = ["macos"] }
+"cargo:releasor" = { version = "2.0.2", os = ["macos"] }
 
 [tasks.lint]
 run = "cargo clippy --all-targets --all-features"
